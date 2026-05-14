@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eng. Salah Mustafa | MEP BIM Engineer</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#050e1f;--navy2:#0a1a35;--navy3:#0f2347;--navy4:#162d55;
+  --gold:#c9a84c;--gold2:#e8c96d;
+  --gold-pale:rgba(201,168,76,.10);--gold-border:rgba(201,168,76,.28);
+  --white:#f5f0e8;--text-dim:#8a9ab8;--text-mid:#b8c5d9;
+  --grid:rgba(201,168,76,.045);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--navy);color:var(--white);font-family:'Inter',sans-serif;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:72px 72px;pointer-events:none;z-index:0;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;justify-content:space-between;align-items:center;padding:0 64px;height:72px;background:rgba(5,14,31,.93);backdrop-filter:blur(16px);border-bottom:1px solid var(--gold-border);}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--gold2);}
+.nav-logo span{color:var(--white);font-weight:400;}
+.nav-links{display:flex;gap:40px;list-style:none;align-items:center;}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;font-weight:500;transition:color .25s;position:relative;padding-bottom:4px;}
+.nav-links a::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--gold);transform:scaleX(0);transition:transform .3s;}
+.nav-links a:hover{color:var(--gold2);}
+.nav-links a:hover::after{transform:scaleX(1);}
+#admin-btn{background:none;border:1px solid var(--gold-border);color:var(--text-dim);width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.85rem;transition:all .3s;}
+#admin-btn:hover,#admin-btn.on{border-color:var(--gold);color:var(--gold);background:var(--gold-pale);}
+section{position:relative;z-index:1;}
+
+/* PAGE LOADER */
+#page-loader{position:fixed;inset:0;background:var(--navy);z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s;}
+#page-loader.done{opacity:0;pointer-events:none;}
+.loader-logo{font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:900;color:var(--gold2);letter-spacing:2px;}
+.loader-bar-wrap{width:220px;height:2px;background:var(--navy3);border:1px solid var(--gold-border);}
+.loader-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .3s;}
+.loader-txt{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;}
+
+/* PASSWORD MODAL */
+#pw-modal{display:none;position:fixed;inset:0;background:rgba(3,9,20,.95);z-index:500;align-items:center;justify-content:center;}
+#pw-modal.open{display:flex;}
+.pw-box{background:var(--navy2);border:1px solid var(--gold-border);padding:48px 44px;width:360px;position:relative;}
+.pw-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.pw-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;margin-bottom:6px;}
+.pw-sub{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:28px;}
+.pw-input{width:100%;background:var(--navy3);border:1px solid var(--gold-border);color:var(--white);padding:13px 16px;font-family:'JetBrains Mono',monospace;font-size:.9rem;letter-spacing:3px;outline:none;transition:border-color .3s;margin-bottom:14px;}
+.pw-input:focus{border-color:var(--gold);}
+.pw-input.err{border-color:#e05555;animation:shake .3s;}
+.pw-btn{width:100%;padding:13px;background:var(--gold);border:none;color:var(--navy);font-family:'JetBrains Mono',monospace;font-size:.75rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700;transition:background .3s;}
+.pw-btn:hover{background:var(--gold2);}
+.pw-err{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:#e05555;margin-top:10px;display:none;}
+.pw-logout{width:100%;padding:10px;background:transparent;border:1px solid rgba(224,85,85,.4);color:#e05555;font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:10px;transition:all .3s;display:none;}
+.pw-logout:hover{background:rgba(224,85,85,.1);}
+.pw-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text-dim);font-size:1.1rem;cursor:pointer;}
+.pw-close:hover{color:var(--gold);}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* TOAST */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy2);border:1px solid var(--gold-border);padding:12px 28px;font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:2px;color:var(--gold);text-transform:uppercase;z-index:400;transition:transform .4s cubic-bezier(.4,0,.2,1);backdrop-filter:blur(8px);white-space:nowrap;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ══════════════════════════
+   REORDER MODAL
+══════════════════════════ */
+#reorder-modal{display:none;position:fixed;inset:0;background:rgba(3,9,20,.96);z-index:600;align-items:flex-end;justify-content:center;}
+#reorder-modal.open{display:flex;}
+.ro-panel{background:var(--navy2);border:1px solid var(--gold-border);border-bottom:none;width:100%;max-width:900px;max-height:88vh;display:flex;flex-direction:column;position:relative;}
+.ro-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.ro-head{display:flex;align-items:center;justify-content:space-between;padding:22px 28px;border-bottom:1px solid var(--gold-border);flex-shrink:0;}
+.ro-head-left{display:flex;flex-direction:column;gap:4px;}
+.ro-head-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;}
+.ro-head-sub{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;}
+.ro-head-right{display:flex;gap:10px;}
+.ro-btn{padding:9px 22px;font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;border:1px solid;cursor:pointer;transition:all .3s;font-weight:600;}
+.ro-btn.cancel{background:transparent;border-color:var(--gold-border);color:var(--text-dim);}
+.ro-btn.cancel:hover{border-color:var(--gold);color:var(--gold);}
+.ro-btn.save{background:var(--gold);border-color:var(--gold);color:var(--navy);}
+.ro-btn.save:hover{background:var(--gold2);border-color:var(--gold2);}
+.ro-hint{padding:12px 28px;font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:1px;color:var(--text-dim);border-bottom:1px solid var(--gold-border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.ro-hint span{color:var(--gold);}
+.ro-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;padding:20px 28px;overflow-y:auto;flex:1;}
+
+/* draggable thumbnail */
+.ro-thumb{position:relative;aspect-ratio:4/3;background:var(--navy3);border:2px solid var(--gold-border);cursor:grab;user-select:none;transition:border-color .2s, transform .15s, box-shadow .15s;overflow:hidden;}
+.ro-thumb:hover{border-color:var(--gold);}
+.ro-thumb.dragging{opacity:.4;transform:scale(.97);cursor:grabbing;}
+.ro-thumb.drag-over{border-color:var(--gold2);box-shadow:0 0 0 2px var(--gold2);transform:scale(1.03);}
+.ro-thumb img{width:100%;height:100%;object-fit:cover;pointer-events:none;display:block;}
+/* position badge */
+.ro-pos{position:absolute;top:7px;left:7px;width:26px;height:26px;background:rgba(5,14,31,.85);border:1px solid var(--gold-border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;color:var(--gold);z-index:2;pointer-events:none;}
+/* drag handle */
+.ro-handle{position:absolute;top:7px;right:7px;color:var(--gold);font-size:.85rem;opacity:.7;z-index:2;pointer-events:none;background:rgba(5,14,31,.7);padding:2px 4px;}
+/* name label */
+.ro-name{position:absolute;bottom:0;left:0;right:0;background:rgba(5,14,31,.82);font-family:'JetBrains Mono',monospace;font-size:.52rem;letter-spacing:1px;color:var(--text-mid);padding:5px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;}
+/* quick-move arrows */
+.ro-arrows{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 6px;opacity:0;transition:opacity .2s;pointer-events:none;}
+.ro-thumb:hover .ro-arrows{opacity:1;pointer-events:auto;}
+.ro-arr{background:rgba(5,14,31,.82);border:1px solid var(--gold-border);color:var(--gold);width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:all .2s;}
+.ro-arr:hover{background:var(--gold);color:var(--navy);}
+
+/* HERO */
+#hero{min-height:100vh;display:grid;grid-template-columns:1fr 400px;align-items:center;padding:100px 64px 60px;gap:60px;}
+.hero-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:24px;display:flex;align-items:center;gap:16px;opacity:0;animation:fadeUp .8s .2s forwards;}
+.hero-eyebrow::before{content:'';width:36px;height:1px;background:var(--gold);}
+.hero-name{font-family:'Playfair Display',serif;font-size:clamp(3.2rem,5vw,5.6rem);font-weight:900;line-height:1;letter-spacing:-1px;opacity:0;animation:fadeUp .8s .4s forwards;}
+.hero-name em{font-style:normal;color:var(--gold2);}
+.hero-divider{width:80px;height:2px;background:linear-gradient(90deg,var(--gold),transparent);margin:26px 0;opacity:0;animation:fadeUp .8s .55s forwards;}
+.hero-role{font-size:.92rem;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--text-mid);opacity:0;animation:fadeUp .8s .65s forwards;}
+.hero-desc{margin-top:18px;font-size:.93rem;line-height:1.82;color:var(--text-dim);max-width:500px;opacity:0;animation:fadeUp .8s .8s forwards;}
+.hero-cta{margin-top:42px;display:flex;gap:16px;flex-wrap:wrap;opacity:0;animation:fadeUp .8s 1s forwards;}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:13px 30px;font-family:'JetBrains Mono',monospace;font-size:.73rem;letter-spacing:2px;text-transform:uppercase;text-decoration:none;border:1px solid;cursor:pointer;transition:all .3s;font-weight:500;}
+.btn-gold{background:var(--gold);border-color:var(--gold);color:var(--navy);}
+.btn-gold:hover{background:var(--gold2);border-color:var(--gold2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(201,168,76,.3);}
+.btn-outline{background:transparent;border-color:var(--gold-border);color:var(--text-mid);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);transform:translateY(-2px);}
+.hero-photo-col{display:flex;flex-direction:column;gap:20px;opacity:0;animation:fadeIn 1s 1s forwards;}
+.photo-frame{position:relative;width:100%;aspect-ratio:3/4;background:var(--navy2);border:1px solid var(--gold-border);overflow:hidden;}
+.photo-frame::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);z-index:3;}
+.photo-frame::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(5,14,31,.5) 0%,transparent 50%);z-index:2;pointer-events:none;}
+#profile-img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;transition:transform .5s;}
+.photo-frame:hover #profile-img{transform:scale(1.03);}
+.photo-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:1;}
+.photo-initials{font-family:'Playfair Display',serif;font-size:6rem;font-weight:900;color:var(--gold-border);line-height:1;letter-spacing:-4px;}
+.photo-hint{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;opacity:.45;}
+.photo-upload-btn{position:absolute;bottom:0;left:0;right:0;z-index:3;background:rgba(5,14,31,.88);border:none;border-top:1px solid var(--gold-border);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;text-transform:uppercase;padding:11px;cursor:pointer;display:none;transition:background .3s;align-items:center;justify-content:center;gap:8px;}
+.photo-upload-btn:hover{background:var(--gold-pale);}
+.photo-upload-btn input{display:none;}
+.photo-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--gold-border);border:1px solid var(--gold-border);}
+.ps-cell{background:var(--navy2);padding:16px 10px;text-align:center;}
+.ps-n{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--gold2);line-height:1;}
+.ps-d{font-size:.65rem;color:var(--text-dim);margin-top:4px;}
+
+/* ABOUT */
+#about{padding:110px 64px;border-top:1px solid var(--gold-border);display:grid;grid-template-columns:1fr 1fr;gap:90px;align-items:start;background:var(--navy2);}
+.section-label{font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.section-label::before{content:'';width:24px;height:1px;background:var(--gold);}
+.section-title{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,3.2vw,3.6rem);font-weight:700;line-height:1.05;margin-bottom:22px;letter-spacing:-.5px;}
+.section-title em{font-style:normal;color:var(--gold2);}
+.about-p{font-size:.95rem;line-height:1.82;color:var(--text-dim);margin-bottom:14px;}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--gold-border);border:1px solid var(--gold-border);margin-top:40px;}
+.stat-cell{background:var(--navy);padding:22px 16px;text-align:center;transition:background .3s;}
+.stat-cell:hover{background:var(--gold-pale);}
+.stat-n{font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:700;color:var(--gold2);line-height:1;}
+.stat-d{font-size:.7rem;color:var(--text-dim);margin-top:6px;}
+.spec-grid{display:flex;flex-direction:column;gap:10px;}
+.spec-card{display:flex;align-items:center;gap:16px;padding:18px 22px;border:1px solid var(--gold-border);background:var(--navy3);position:relative;overflow:hidden;transition:all .3s;}
+.spec-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--gold);transform:scaleY(0);transition:transform .3s;}
+.spec-card:hover{background:var(--gold-pale);border-color:var(--gold);}
+.spec-card:hover::before{transform:scaleY(1);}
+.spec-ico{font-size:1.25rem;width:30px;text-align:center;flex-shrink:0;}
+.spec-nm{font-size:.86rem;font-weight:700;color:var(--white);}
+.spec-sb{font-size:.73rem;color:var(--text-dim);margin-top:2px;}
+
+/* SKILLS */
+#skills{padding:110px 64px;border-top:1px solid var(--gold-border);}
+.skills-hd{margin-bottom:52px;}
+.skills-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--gold-border);border:1px solid var(--gold-border);}
+.skill-col{background:var(--navy2);padding:34px 26px;transition:background .3s;}
+.skill-col:hover{background:var(--gold-pale);}
+.skill-col-hd{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--gold-border);}
+.skill-col ul{list-style:none;}
+.skill-col li{font-size:.85rem;color:var(--text-mid);font-weight:500;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:10px;}
+.skill-col li::before{content:'▸';color:var(--gold);font-size:.63rem;}
+
+/* PROJECTS */
+#projects{padding:110px 64px;border-top:1px solid var(--gold-border);background:var(--navy2);}
+.projects-hd{margin-bottom:56px;}
+.projects-list{display:flex;flex-direction:column;gap:3px;}
+.pcard{background:var(--navy3);border:1px solid var(--gold-border);overflow:hidden;transition:border-color .4s;}
+.pcard:hover{border-color:var(--gold);}
+.pcard-top{display:grid;grid-template-columns:460px 1fr;}
+.pcard-top.flip{direction:rtl;}
+.pcard-top.flip>*{direction:ltr;}
+.gzone{position:relative;min-height:340px;background:var(--navy4);overflow:hidden;}
+.g-slides-wrap{width:100%;height:340px;overflow:hidden;}
+.g-slides{display:flex;height:100%;transition:transform .5s cubic-bezier(.4,0,.2,1);}
+.g-slide{min-width:100%;height:340px;overflow:hidden;position:relative;cursor:zoom-in;}
+.g-slide img{width:100%;height:100%;object-fit:cover;transition:transform .6s;}
+.pcard:hover .g-slide img{transform:scale(1.04);}
+.g-ov{position:absolute;inset:0;background:linear-gradient(135deg,rgba(5,14,31,.45),transparent 55%);pointer-events:none;}
+.g-btn{position:absolute;top:50%;transform:translateY(-50%);z-index:10;width:34px;height:34px;background:rgba(5,14,31,.75);border:1px solid var(--gold-border);color:var(--gold);display:none;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:all .25s;}
+.g-btn:hover{background:var(--gold);color:var(--navy);}
+.g-btn.L{left:10px;}.g-btn.R{right:10px;}
+.gzone.has .g-btn{display:flex;}
+.g-dots{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:10;}
+.g-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.4);cursor:pointer;transition:all .25s;}
+.g-dot.on{background:var(--gold);border-color:var(--gold);transform:scale(1.35);}
+.g-lbl{position:absolute;top:12px;left:12px;z-index:10;font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:2px;color:var(--gold);background:rgba(5,14,31,.8);padding:4px 10px;border:1px solid var(--gold-border);backdrop-filter:blur(4px);display:none;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.g-cnt{position:absolute;top:12px;right:12px;z-index:10;font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--white);background:rgba(201,168,76,.25);padding:3px 9px;border:1px solid var(--gold-border);display:none;}
+.gzone.has .g-lbl,.gzone.has .g-cnt{display:block;}
+.g-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+.g-empty svg{width:44px;height:44px;stroke:var(--gold);fill:none;opacity:.35;}
+.g-empty p{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:2px;color:var(--gold);text-transform:uppercase;opacity:.45;}
+.gzone.has .g-empty{display:none;}
+.pnum{position:absolute;bottom:14px;right:18px;font-family:'Playfair Display',serif;font-size:4.5rem;font-weight:900;color:rgba(201,168,76,.13);line-height:1;pointer-events:none;z-index:2;}
+.g-saving{position:absolute;inset:0;background:rgba(5,14,31,.7);z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;backdrop-filter:blur(4px);}
+.g-saving.show{display:flex;}
+.spinner{width:36px;height:36px;border:2px solid var(--gold-border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;}
+.g-saving p{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--gold);text-transform:uppercase;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.g-bar{display:none;align-items:center;gap:10px;padding:10px 16px;background:var(--navy);border-top:1px solid var(--gold-border);flex-wrap:wrap;}
+.g-bar.show{display:flex;}
+.g-bar-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 16px;font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:2px;text-transform:uppercase;border:1px solid var(--gold-border);color:var(--gold);cursor:pointer;transition:all .3s;background:transparent;white-space:nowrap;}
+.g-bar-btn:hover{background:var(--gold-pale);border-color:var(--gold);}
+.g-bar-btn input{display:none;}
+/* Reorder button */
+.g-reorder-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 16px;font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(201,168,76,.4);color:var(--text-mid);cursor:pointer;transition:all .3s;background:transparent;white-space:nowrap;}
+.g-reorder-btn:hover{background:var(--gold-pale);border-color:var(--gold);color:var(--gold);}
+.g-reorder-btn:disabled{opacity:.3;cursor:not-allowed;}
+.g-bar-info{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--text-dim);margin-left:auto;}
+.g-bar-info b{color:var(--gold2);}
+.pinfo{padding:38px 42px;display:flex;flex-direction:column;justify-content:center;}
+.p-type{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;}
+.p-name{font-family:'Playfair Display',serif;font-size:1.85rem;font-weight:700;line-height:1.15;margin-bottom:8px;}
+.p-loc{font-size:.77rem;color:var(--text-dim);margin-bottom:20px;display:flex;align-items:center;gap:6px;}
+.p-loc::before{content:'◎';color:var(--gold);font-size:.68rem;}
+.p-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+.p-tag{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:1px;padding:4px 11px;border:1px solid var(--gold-border);color:var(--text-dim);text-transform:uppercase;transition:all .3s;}
+.pcard:hover .p-tag{border-color:rgba(201,168,76,.45);color:var(--gold);}
+.p-missions{list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:24px;}
+.p-missions li{font-size:.82rem;color:var(--text-dim);line-height:1.6;padding-left:18px;position:relative;}
+.p-missions li::before{content:'—';position:absolute;left:0;color:var(--gold);}
+.p-meta{display:flex;gap:24px;padding-top:18px;border-top:1px solid var(--gold-border);margin-top:auto;}
+.p-meta-item{display:flex;flex-direction:column;gap:3px;}
+.p-meta-label{font-family:'JetBrains Mono',monospace;font-size:.54rem;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;}
+.p-meta-val{font-size:.8rem;font-weight:600;color:var(--text-mid);}
+
+/* LIGHTBOX */
+#lb{display:none;position:fixed;inset:0;background:rgba(3,9,20,.97);z-index:800;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+#lb.open{display:flex;}
+#lb img{max-width:93vw;max-height:84vh;object-fit:contain;border:1px solid var(--gold-border);box-shadow:0 0 60px rgba(201,168,76,.12);}
+#lb-x{position:absolute;top:22px;right:30px;color:var(--gold);font-size:1.7rem;cursor:pointer;background:none;border:none;opacity:.8;}
+#lb-x:hover{opacity:1;}
+#lb-info{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;}
+.lb-arrow{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;background:rgba(5,14,31,.75);border:1px solid var(--gold-border);color:var(--gold);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.15rem;transition:all .3s;}
+.lb-arrow:hover{background:var(--gold);color:var(--navy);}
+#lb-prev{left:18px;}#lb-next{right:18px;}
+
+/* CONTACT */
+#contact{padding:110px 64px;border-top:1px solid var(--gold-border);display:grid;grid-template-columns:1.2fr 1fr;gap:90px;align-items:center;}
+.contact-big{font-family:'Playfair Display',serif;font-size:clamp(2.6rem,4vw,4.8rem);font-weight:700;line-height:1.05;letter-spacing:-.5px;margin-bottom:28px;}
+.contact-big em{font-style:normal;color:var(--gold2);}
+.contact-sub{font-size:.95rem;color:var(--text-dim);line-height:1.78;max-width:420px;}
+.contact-cards{display:flex;flex-direction:column;gap:2px;}
+.c-card{display:flex;align-items:center;gap:20px;padding:22px 26px;background:var(--navy2);border:1px solid var(--gold-border);text-decoration:none;transition:all .3s;position:relative;overflow:hidden;}
+.c-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--gold);transform:scaleY(0);transition:transform .3s;}
+.c-card:hover{background:var(--gold-pale);border-color:var(--gold);}
+.c-card:hover::before{transform:scaleY(1);}
+.c-icon{width:44px;height:44px;border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;background:var(--navy3);transition:border-color .3s;}
+.c-card:hover .c-icon{border-color:var(--gold);}
+.c-label{font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:3px;}
+.c-val{font-size:.88rem;font-weight:600;color:var(--text-mid);}
+footer{position:relative;z-index:1;text-align:center;padding:28px 64px;border-top:1px solid var(--gold-border);font-family:'JetBrains Mono',monospace;font-size:.63rem;letter-spacing:2px;color:var(--text-dim);background:var(--navy);}
+footer span{color:var(--gold);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.reveal{opacity:0;transform:translateY(34px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.rd1{transition-delay:.1s}.rd2{transition-delay:.2s}.rd3{transition-delay:.3s}
+@media(max-width:960px){
+  nav{padding:0 18px;}.nav-links li:not(:last-child){display:none;}
+  #hero{grid-template-columns:1fr;padding:90px 20px 50px;}
+  .hero-photo-col{flex-direction:row;gap:12px;}.photo-frame{aspect-ratio:1/1;max-width:160px;}
+  #about{grid-template-columns:1fr;padding:60px 20px;gap:36px;}.stat-row{grid-template-columns:repeat(2,1fr);}
+  #skills{padding:60px 20px;}.skills-grid{grid-template-columns:1fr 1fr;}
+  #projects{padding:60px 20px;}.pcard-top{grid-template-columns:1fr;}.pcard-top.flip{direction:ltr;}
+  .g-slides-wrap,.gzone{min-height:220px;}.g-slides,.g-slide{height:220px;}
+  #contact{grid-template-columns:1fr;padding:60px 20px;gap:36px;}
+  footer{padding:20px;}
+  .ro-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));}
+}
+</style>
+</head>
+<body>
+
+<!-- PAGE LOADER -->
+<div id="page-loader">
+  <div class="loader-logo">SM</div>
+  <div class="loader-bar-wrap"><div class="loader-bar" id="loader-bar"></div></div>
+  <div class="loader-txt" id="loader-txt">Loading portfolio...</div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- PASSWORD MODAL -->
+<div id="pw-modal">
+  <div class="pw-box">
+    <button class="pw-close" onclick="closePw()">✕</button>
+    <div class="pw-title" id="pw-title">Admin Access</div>
+    <div class="pw-sub" id="pw-sub">Enter password to unlock uploads</div>
+    <input type="password" class="pw-input" id="pw-inp" placeholder="••••••••">
+    <button class="pw-btn" id="pw-btn" onclick="checkPw()">Unlock</button>
+    <div class="pw-err" id="pw-err">⚠ Incorrect password</div>
+    <button class="pw-logout" id="pw-logout" onclick="doLogout()">🔒 Lock & Logout</button>
+  </div>
+</div>
+
+<!-- REORDER MODAL -->
+<div id="reorder-modal">
+  <div class="ro-panel">
+    <div class="ro-head">
+      <div class="ro-head-left">
+        <div class="ro-head-title">Reorder Images</div>
+        <div class="ro-head-sub" id="ro-sub">Drag thumbnails · or use ‹ › arrows</div>
+      </div>
+      <div class="ro-head-right">
+        <button class="ro-btn cancel" onclick="closeReorder()">Cancel</button>
+        <button class="ro-btn save" onclick="saveReorder()">Save Order ✓</button>
+      </div>
+    </div>
+    <div class="ro-hint">
+      <span>⠿</span> Drag to reorder &nbsp;|&nbsp; <span>‹ ›</span> Click arrows to shift left/right &nbsp;|&nbsp; <span>🔍</span> Hover to preview position
+    </div>
+    <div class="ro-grid" id="ro-grid"></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lb">
+  <button id="lb-x" onclick="lbClose()">✕</button>
+  <div class="lb-arrow" id="lb-prev" onclick="lbStep(-1)">‹</div>
+  <img id="lb-img" src="" alt="">
+  <div id="lb-info"></div>
+  <div class="lb-arrow" id="lb-next" onclick="lbStep(1)">›</div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo"><em>Eng.</em> <span>Salah Mustafa</span></div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><button id="admin-btn" onclick="openPw()" title="Admin">🔒</button></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div>
+    <div class="hero-eyebrow">MEP BIM Engineer · Egypt</div>
+    <h1 class="hero-name">Eng. <em>Salah</em><br>Mustafa</h1>
+    <div class="hero-divider"></div>
+    <p class="hero-role">HVAC · Firefighting · Plumbing · Medical Gas</p>
+    <p class="hero-desc">Specialized in delivering integrated, clash-free MEP designs using BIM technology — optimized for construction and fully compliant with international safety standards.</p>
+    <div class="hero-cta">
+      <a href="#projects" class="btn btn-gold">View Projects ↓</a>
+      <a href="#contact" class="btn btn-outline">Get In Touch</a>
+    </div>
+  </div>
+  <div class="hero-photo-col">
+    <div class="photo-frame">
+      <div class="photo-placeholder" id="photo-ph">
+        <div class="photo-initials">SM</div>
+        <div class="photo-hint">Profile Photo</div>
+      </div>
+      <img id="profile-img" src="" alt="Eng. Salah Mustafa" style="display:none;">
+      <label class="photo-upload-btn" id="photo-upload-btn">
+        📷 Change Photo
+        <input type="file" id="profile-input" accept="image/*" onchange="uploadProfile(event)">
+      </label>
+    </div>
+    <div class="photo-stats">
+      <div class="ps-cell"><div class="ps-n">5+</div><div class="ps-d">Projects</div></div>
+      <div class="ps-cell"><div class="ps-n">3+</div><div class="ps-d">Countries</div></div>
+      <div class="ps-cell"><div class="ps-n">4</div><div class="ps-d">Disciplines</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="reveal">
+    <div class="section-label">01 — About Me</div>
+    <h2 class="section-title">Who <em>Am</em> I?</h2>
+    <p class="about-p">An MEP BIM Engineer with specialized expertise in HVAC, Firefighting, Plumbing, and Medical Gas systems. Proficient in Revit, AutoCAD, Navisworks, and HAP.</p>
+    <p class="about-p">My focus is on providing high-quality engineering solutions optimized for construction and fully compliant with international safety standards.</p>
+    <div class="stat-row">
+      <div class="stat-cell"><div class="stat-n">5+</div><div class="stat-d">Projects</div></div>
+      <div class="stat-cell"><div class="stat-n">3+</div><div class="stat-d">Countries</div></div>
+      <div class="stat-cell"><div class="stat-n">4</div><div class="stat-d">Disciplines</div></div>
+      <div class="stat-cell"><div class="stat-n">11+</div><div class="stat-d">Tools</div></div>
+    </div>
+  </div>
+  <div class="spec-grid reveal rd2">
+    <div class="spec-card"><div class="spec-ico">🌡️</div><div><div class="spec-nm">HVAC Systems</div><div class="spec-sb">AHU · FCU · VRF · Chillers · Duct Design</div></div></div>
+    <div class="spec-card"><div class="spec-ico">🔥</div><div><div class="spec-nm">Firefighting Systems</div><div class="spec-sb">Sprinklers · Fire Cabinets · Pump Rooms</div></div></div>
+    <div class="spec-card"><div class="spec-ico">💧</div><div><div class="spec-nm">Plumbing Systems</div><div class="spec-sb">Water Supply · Drainage · Solar Heaters</div></div></div>
+    <div class="spec-card"><div class="spec-ico">🏥</div><div><div class="spec-nm">Medical Gas Systems</div><div class="spec-sb">Hospital-Grade Medical Gas Networks</div></div></div>
+    <div class="spec-card"><div class="spec-ico">🧊</div><div><div class="spec-nm">BIM Coordination</div><div class="spec-sb">Clash Detection · Integrated 3D Models</div></div></div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="skills-hd reveal">
+    <div class="section-label">02 — Computer Skills</div>
+    <h2 class="section-title">Software <em>Arsenal</em></h2>
+  </div>
+  <div class="skills-grid reveal rd1">
+    <div class="skill-col"><div class="skill-col-hd">Autodesk Suite</div><ul><li>Revit</li><li>AutoCAD</li><li>Navisworks</li><li>Enscape</li></ul></div>
+    <div class="skill-col"><div class="skill-col-hd">MEP Design</div><ul><li>HAP (Hourly Analysis)</li><li>Elite Software</li><li>ASHRAE Duct Fitting</li></ul></div>
+    <div class="skill-col"><div class="skill-col-hd">Engineering Tools</div><ul><li>SolidWorks</li><li>MATLAB</li></ul></div>
+    <div class="skill-col"><div class="skill-col-hd">Microsoft Office</div><ul><li>PowerPoint</li><li>Word</li><li>Excel</li></ul></div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="projects-hd reveal">
+    <div class="section-label">03 — Projects</div>
+    <h2 class="section-title">Featured <em>Work</em></h2>
+  </div>
+  <div class="projects-list">
+
+    <!-- P1 -->
+    <div class="pcard reveal">
+      <div class="pcard-top">
+        <div class="gzone" id="gz1">
+          <div class="g-slides-wrap"><div class="g-slides" id="gs1"></div></div>
+          <div class="g-empty"><svg viewBox="0 0 24 24" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><p>No images yet</p></div>
+          <div class="g-btn L" onclick="gNav(1,-1)">‹</div><div class="g-btn R" onclick="gNav(1,1)">›</div>
+          <div class="g-dots" id="gd1"></div><div class="g-lbl" id="gl1"></div><div class="g-cnt" id="gc1"></div>
+          <div class="g-saving" id="gsav1"><div class="spinner"></div><p>Saving...</p></div>
+          <div class="pnum">01</div>
+        </div>
+        <div class="pinfo">
+          <div class="p-type">Healthcare Facility</div>
+          <div class="p-name">Monofiya Private Hospital</div>
+          <div class="p-loc">Monofiya, Egypt</div>
+          <div class="p-tags"><span class="p-tag">HVAC</span><span class="p-tag">Firefighting</span><span class="p-tag">Plumbing</span><span class="p-tag">BIM</span></div>
+          <ul class="p-missions">
+            <li>Cooling loads via HAP; AHU/FCU with full duct & ventilation and 3D AHU coordination</li>
+            <li>Firefighting pump room (Diesel + Jockey + Electrical) with complete sprinkler network</li>
+            <li>Water supply & drainage with solar heaters, booster pumps & basement lifting stations</li>
+            <li>Full BIM coordination: Air Terminals, DCU Layout, Sprinkler Distribution</li>
+          </ul>
+          <div class="p-meta">
+            <div class="p-meta-item"><div class="p-meta-label">Scale</div><div class="p-meta-val">Floor + Basement + Roof</div></div>
+            <div class="p-meta-item"><div class="p-meta-label">Tools</div><div class="p-meta-val">Revit · AutoCAD · HAP</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="g-bar" id="gb1">
+        <label class="g-bar-btn"><svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload<input type="file" accept="image/*" multiple onchange="handleUpload(1,event)"></label>
+        <button class="g-reorder-btn" id="rbtn1" onclick="openReorder(1)" disabled>⠿ Reorder</button>
+        <span class="g-bar-info">🔑 Admin · <b id="gn1">0 imgs</b></span>
+      </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="pcard reveal rd1">
+      <div class="pcard-top flip">
+        <div class="gzone" id="gz2">
+          <div class="g-slides-wrap"><div class="g-slides" id="gs2"></div></div>
+          <div class="g-empty"><svg viewBox="0 0 24 24" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><p>No images yet</p></div>
+          <div class="g-btn L" onclick="gNav(2,-1)">‹</div><div class="g-btn R" onclick="gNav(2,1)">›</div>
+          <div class="g-dots" id="gd2"></div><div class="g-lbl" id="gl2"></div><div class="g-cnt" id="gc2"></div>
+          <div class="g-saving" id="gsav2"><div class="spinner"></div><p>Saving...</p></div>
+          <div class="pnum">02</div>
+        </div>
+        <div class="pinfo">
+          <div class="p-type">Hospitality · Graduation Project</div>
+          <div class="p-name">Presticom Hotel</div>
+          <div class="p-loc">Ivory Coast</div>
+          <div class="p-tags"><span class="p-tag">HVAC</span><span class="p-tag">VRF System</span><span class="p-tag">Load Calc</span></div>
+          <ul class="p-missions">
+            <li>Accurate cooling load calculations using HAP for proper equipment selection</li>
+            <li>Applied VRF system for high energy efficiency fitting dynamic occupancy</li>
+            <li>Perfect temperature control and indoor climate for all guest areas</li>
+          </ul>
+          <div class="p-meta">
+            <div class="p-meta-item"><div class="p-meta-label">Scale</div><div class="p-meta-val">4 Floors</div></div>
+            <div class="p-meta-item"><div class="p-meta-label">Tools</div><div class="p-meta-val">Revit · HAP · AutoCAD</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="g-bar" id="gb2">
+        <label class="g-bar-btn"><svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload<input type="file" accept="image/*" multiple onchange="handleUpload(2,event)"></label>
+        <button class="g-reorder-btn" id="rbtn2" onclick="openReorder(2)" disabled>⠿ Reorder</button>
+        <span class="g-bar-info">🔑 Admin · <b id="gn2">0 imgs</b></span>
+      </div>
+    </div>
+
+    <!-- P3 -->
+    <div class="pcard reveal">
+      <div class="pcard-top">
+        <div class="gzone" id="gz3">
+          <div class="g-slides-wrap"><div class="g-slides" id="gs3"></div></div>
+          <div class="g-empty"><svg viewBox="0 0 24 24" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><p>No images yet</p></div>
+          <div class="g-btn L" onclick="gNav(3,-1)">‹</div><div class="g-btn R" onclick="gNav(3,1)">›</div>
+          <div class="g-dots" id="gd3"></div><div class="g-lbl" id="gl3"></div><div class="g-cnt" id="gc3"></div>
+          <div class="g-saving" id="gsav3"><div class="spinner"></div><p>Saving...</p></div>
+          <div class="pnum">03</div>
+        </div>
+        <div class="pinfo">
+          <div class="p-type">Residential</div>
+          <div class="p-name">Mousa Villa</div>
+          <div class="p-loc">Saudi Arabia</div>
+          <div class="p-tags"><span class="p-tag">HVAC</span><span class="p-tag">Firefighting</span><span class="p-tag">Plumbing</span></div>
+          <ul class="p-missions">
+            <li>Cooling system using ducts and split units (high-wall & cassette types)</li>
+            <li>Safe sprinkler and fire hose network throughout the villa</li>
+            <li>Reliable water supply and drainage for all bathrooms and kitchens</li>
+          </ul>
+          <div class="p-meta">
+            <div class="p-meta-item"><div class="p-meta-label">Scale</div><div class="p-meta-val">2 Floors</div></div>
+            <div class="p-meta-item"><div class="p-meta-label">Tools</div><div class="p-meta-val">Revit · AutoCAD</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="g-bar" id="gb3">
+        <label class="g-bar-btn"><svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload<input type="file" accept="image/*" multiple onchange="handleUpload(3,event)"></label>
+        <button class="g-reorder-btn" id="rbtn3" onclick="openReorder(3)" disabled>⠿ Reorder</button>
+        <span class="g-bar-info">🔑 Admin · <b id="gn3">0 imgs</b></span>
+      </div>
+    </div>
+
+    <!-- P4 -->
+    <div class="pcard reveal rd1">
+      <div class="pcard-top flip">
+        <div class="gzone" id="gz4">
+          <div class="g-slides-wrap"><div class="g-slides" id="gs4"></div></div>
+          <div class="g-empty"><svg viewBox="0 0 24 24" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><p>No images yet</p></div>
+          <div class="g-btn L" onclick="gNav(4,-1)">‹</div><div class="g-btn R" onclick="gNav(4,1)">›</div>
+          <div class="g-dots" id="gd4"></div><div class="g-lbl" id="gl4"></div><div class="g-cnt" id="gc4"></div>
+          <div class="g-saving" id="gsav4"><div class="spinner"></div><p>Saving...</p></div>
+          <div class="pnum">04</div>
+        </div>
+        <div class="pinfo">
+          <div class="p-type">Commercial</div>
+          <div class="p-name">Smart Office</div>
+          <div class="p-loc">Saudi Arabia</div>
+          <div class="p-tags"><span class="p-tag">HVAC</span><span class="p-tag">Firefighting</span><span class="p-tag">Plumbing</span></div>
+          <ul class="p-missions">
+            <li>High-capacity air-cooled chiller plant with AHU/FCU for precise climate control</li>
+            <li>Full-scale fire safety network with dedicated pump room and sprinkler system</li>
+            <li>3D modeled water & drainage with detailed installation drawings</li>
+          </ul>
+          <div class="p-meta">
+            <div class="p-meta-item"><div class="p-meta-label">Scale</div><div class="p-meta-val">1 Floor</div></div>
+            <div class="p-meta-item"><div class="p-meta-label">Tools</div><div class="p-meta-val">Revit · AutoCAD · HAP</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="g-bar" id="gb4">
+        <label class="g-bar-btn"><svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload<input type="file" accept="image/*" multiple onchange="handleUpload(4,event)"></label>
+        <button class="g-reorder-btn" id="rbtn4" onclick="openReorder(4)" disabled>⠿ Reorder</button>
+        <span class="g-bar-info">🔑 Admin · <b id="gn4">0 imgs</b></span>
+      </div>
+    </div>
+
+    <!-- P5 -->
+    <div class="pcard reveal">
+      <div class="pcard-top">
+        <div class="gzone" id="gz5">
+          <div class="g-slides-wrap"><div class="g-slides" id="gs5"></div></div>
+          <div class="g-empty"><svg viewBox="0 0 24 24" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><p>No images yet</p></div>
+          <div class="g-btn L" onclick="gNav(5,-1)">‹</div><div class="g-btn R" onclick="gNav(5,1)">›</div>
+          <div class="g-dots" id="gd5"></div><div class="g-lbl" id="gl5"></div><div class="g-cnt" id="gc5"></div>
+          <div class="g-saving" id="gsav5"><div class="spinner"></div><p>Saving...</p></div>
+          <div class="pnum">05</div>
+        </div>
+        <div class="pinfo">
+          <div class="p-type">Residential</div>
+          <div class="p-name">Badrya Villa</div>
+          <div class="p-loc">Saudi Arabia</div>
+          <div class="p-tags"><span class="p-tag">HVAC</span><span class="p-tag">Firefighting</span><span class="p-tag">Plumbing</span></div>
+          <ul class="p-missions">
+            <li>Concealed split units and ductwork for modern comfort and aesthetics</li>
+            <li>Complete sprinkler and fire cabinet network designed to safety codes</li>
+            <li>High-quality water supply and drainage with precise installation details</li>
+          </ul>
+          <div class="p-meta">
+            <div class="p-meta-item"><div class="p-meta-label">Scale</div><div class="p-meta-val">2 Floors</div></div>
+            <div class="p-meta-item"><div class="p-meta-label">Tools</div><div class="p-meta-val">Revit · AutoCAD</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="g-bar" id="gb5">
+        <label class="g-bar-btn"><svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload<input type="file" accept="image/*" multiple onchange="handleUpload(5,event)"></label>
+        <button class="g-reorder-btn" id="rbtn5" onclick="openReorder(5)" disabled>⠿ Reorder</button>
+        <span class="g-bar-info">🔑 Admin · <b id="gn5">0 imgs</b></span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="reveal">
+    <div class="section-label">04 — Contact</div>
+    <h2 class="contact-big">Let's Work<br><em>Together</em></h2>
+    <p class="contact-sub">Based in Sinbillawin–Mansoura, Egypt. Open to MEP projects locally and internationally across the MENA region and beyond.</p>
+  </div>
+  <div class="contact-cards reveal rd2">
+    <a class="c-card" href="tel:01095911426"><div class="c-icon">📞</div><div><div class="c-label">Phone</div><div class="c-val">01095911426</div></div></a>
+    <a class="c-card" href="mailto:sm3243450@gmail.com"><div class="c-icon">✉️</div><div><div class="c-label">Email</div><div class="c-val">sm3243450@gmail.com</div></div></a>
+    <a class="c-card" href="https://www.linkedin.com/in/salah-mustafa-b079072b2" target="_blank"><div class="c-icon" style="font-family:serif;font-weight:700;font-size:.85rem;">in</div><div><div class="c-label">LinkedIn</div><div class="c-val">salah-mustafa-b079072b2</div></div></a>
+    <div class="c-card"><div class="c-icon">📍</div><div><div class="c-label">Location</div><div class="c-val">Sinbillawin – Mansoura, Egypt</div></div></div>
+  </div>
+</section>
+<footer>© 2025 <span>Eng. Salah Mustafa</span> · MEP BIM Engineer · All Rights Reserved</footer>
+
+<script>
+/* ═══════════════════════════ CONFIG ═══════════════════════════ */
+const PASS = 'Salah@2025';
+
+/* ═══════════════════════════ STATE ═══════════════════════════ */
+let isAdmin = false;
+const gSt = {};
+for(let i=1;i<=5;i++) gSt[i]={srcs:[],names:[],idx:0};
+
+/* active reorder session */
+let roId = null;
+let roOrder = []; // array of indices into gSt[roId]
+let dragSrc = null;
+
+/* ═══════════════════════════ COMPRESSION ═══════════════════════════ */
+function compress(src,maxW=1400,q=0.72){
+  return new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{
+      let w=img.width,h=img.height;
+      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+      const c=document.createElement('canvas');
+      c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      res(c.toDataURL('image/jpeg',q));
+    };
+    img.src=src;
+  });
+}
+function readFile(f){return new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(f);});}
+
+/* ═══════════════════════════ STORAGE ═══════════════════════════ */
+async function saveProj(id){
+  const{srcs,names}=gSt[id];
+  try{
+    await window.storage.set(`p${id}_count`,String(srcs.length),true);
+    for(let i=0;i<srcs.length;i++)
+      await window.storage.set(`p${id}_img${i}`,JSON.stringify({src:srcs[i],name:names[i]}),true);
+  }catch(e){console.warn(e);}
+}
+async function loadProj(id){
+  try{
+    const cRes=await window.storage.get(`p${id}_count`,true);
+    if(!cRes)return;
+    const count=parseInt(cRes.value);
+    if(!count)return;
+    const srcs=[],names=[];
+    for(let i=0;i<count;i++){
+      try{const r=await window.storage.get(`p${id}_img${i}`,true);if(r){const d=JSON.parse(r.value);srcs.push(d.src);names.push(d.name);}}catch(_){}
+    }
+    if(srcs.length){gSt[id]={srcs,names,idx:0};renderGallery(id);}
+  }catch(_){}
+}
+async function saveProfile(src){try{await window.storage.set('profile_photo',src,true);}catch(e){}}
+async function loadProfile(){try{const r=await window.storage.get('profile_photo',true);if(r)showProfile(r.value);}catch(_){}}
+
+/* ═══════════════════════════ PAGE INIT ═══════════════════════════ */
+async function initPage(){
+  const bar=document.getElementById('loader-bar');
+  const txt=document.getElementById('loader-txt');
+  const steps=[
+    {pct:18,msg:'Loading profile...',fn:loadProfile},
+    {pct:36,msg:'Loading project 1...',fn:()=>loadProj(1)},
+    {pct:50,msg:'Loading project 2...',fn:()=>loadProj(2)},
+    {pct:64,msg:'Loading project 3...',fn:()=>loadProj(3)},
+    {pct:78,msg:'Loading project 4...',fn:()=>loadProj(4)},
+    {pct:92,msg:'Loading project 5...',fn:()=>loadProj(5)},
+    {pct:100,msg:'Ready!',fn:()=>{}},
+  ];
+  for(const s of steps){txt.textContent=s.msg;bar.style.width=s.pct+'%';await s.fn();await new Promise(r=>setTimeout(r,110));}
+  setTimeout(()=>{document.getElementById('page-loader').classList.add('done');setTimeout(()=>document.getElementById('page-loader').remove(),600);},280);
+}
+
+/* ═══════════════════════════ UPLOAD ═══════════════════════════ */
+async function handleUpload(id,e){
+  const files=Array.from(e.target.files);if(!files.length)return;
+  document.getElementById('gsav'+id).classList.add('show');
+  for(const f of files){
+    const raw=await readFile(f);
+    const cmp=await compress(raw);
+    gSt[id].srcs.push(cmp);
+    gSt[id].names.push(f.name.replace(/\.[^.]+$/,''));
+  }
+  gSt[id].idx=0;
+  await saveProj(id);
+  document.getElementById('gsav'+id).classList.remove('show');
+  renderGallery(id);
+  showToast('✓ '+files.length+' image(s) saved — visible to all visitors');
+}
+async function uploadProfile(e){
+  const f=e.target.files[0];if(!f)return;
+  const raw=await readFile(f);
+  const cmp=await compress(raw,800,0.82);
+  showProfile(cmp);await saveProfile(cmp);
+  showToast('✓ Profile photo saved');
+}
+function showProfile(src){
+  const img=document.getElementById('profile-img');
+  img.src=src;img.style.display='block';
+  document.getElementById('photo-ph').style.display='none';
+}
+
+/* ═══════════════════════════ GALLERY RENDER ═══════════════════════════ */
+function renderGallery(id){
+  const{srcs,names}=gSt[id];
+  const wrap=document.getElementById('gs'+id);
+  const dots=document.getElementById('gd'+id);
+  const zone=document.getElementById('gz'+id);
+  wrap.innerHTML='';dots.innerHTML='';
+  srcs.forEach((src,i)=>{
+    const sl=document.createElement('div');sl.className='g-slide';
+    sl.innerHTML=`<img src="${src}" alt=""><div class="g-ov"></div>`;
+    sl.addEventListener('click',()=>lbOpen(id,i));
+    wrap.appendChild(sl);
+    const d=document.createElement('div');d.className='g-dot'+(i===0?' on':'');
+    d.addEventListener('click',()=>{gSt[id].idx=i;updateGUI(id);});
+    dots.appendChild(d);
+  });
+  zone.classList.add('has');
+  const n=srcs.length;
+  document.getElementById('gn'+id).textContent=n+' img'+(n!==1?'s':'');
+  const rbtn=document.getElementById('rbtn'+id);
+  if(rbtn) rbtn.disabled=(n<2);
+  updateGUI(id);
+}
+function gNav(id,dir){
+  const s=gSt[id];if(!s.srcs.length)return;
+  s.idx=(s.idx+dir+s.srcs.length)%s.srcs.length;
+  updateGUI(id);
+}
+function updateGUI(id){
+  const{srcs,names,idx}=gSt[id];
+  document.getElementById('gs'+id).style.transform=`translateX(-${idx*100}%)`;
+  document.querySelectorAll(`#gd${id} .g-dot`).forEach((d,i)=>d.classList.toggle('on',i===idx));
+  document.getElementById('gl'+id).textContent=names[idx]||`Image ${idx+1}`;
+  document.getElementById('gc'+id).textContent=`${idx+1} / ${srcs.length}`;
+}
+
+/* ═══════════════════════════ REORDER MODAL ═══════════════════════════ */
+function openReorder(id){
+  const{srcs,names}=gSt[id];
+  if(srcs.length<2)return;
+  roId=id;
+  roOrder=[...Array(srcs.length).keys()]; // [0,1,2,...]
+  document.getElementById('ro-sub').textContent=`Project ${id} · ${srcs.length} images`;
+  buildReorderGrid();
+  document.getElementById('reorder-modal').classList.add('open');
+}
+
+function buildReorderGrid(){
+  const{srcs,names}=gSt[roId];
+  const grid=document.getElementById('ro-grid');
+  grid.innerHTML='';
+  roOrder.forEach((origIdx,pos)=>{
+    const card=document.createElement('div');
+    card.className='ro-thumb';
+    card.draggable=true;
+    card.dataset.pos=pos;
+    card.innerHTML=`
+      <img src="${srcs[origIdx]}" alt="">
+      <div class="ro-pos">${pos+1}</div>
+      <div class="ro-handle">⠿</div>
+      <div class="ro-name">${names[origIdx]||'Image '+(origIdx+1)}</div>
+      <div class="ro-arrows">
+        <div class="ro-arr" onclick="shiftImg(${pos},-1)">‹</div>
+        <div class="ro-arr" onclick="shiftImg(${pos},1)">›</div>
+      </div>`;
+    /* drag events */
+    card.addEventListener('dragstart',e=>{
+      dragSrc=pos;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+    });
+    card.addEventListener('dragend',()=>{
+      card.classList.remove('dragging');
+      document.querySelectorAll('.ro-thumb').forEach(c=>c.classList.remove('drag-over'));
+    });
+    card.addEventListener('dragover',e=>{
+      e.preventDefault();e.dataTransfer.dropEffect='move';
+      document.querySelectorAll('.ro-thumb').forEach(c=>c.classList.remove('drag-over'));
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('drop',e=>{
+      e.preventDefault();
+      if(dragSrc===null||dragSrc===pos)return;
+      const moved=roOrder.splice(dragSrc,1)[0];
+      roOrder.splice(pos,0,moved);
+      dragSrc=null;
+      buildReorderGrid();
+    });
+    grid.appendChild(card);
+  });
+}
+
+function shiftImg(pos,dir){
+  const target=pos+dir;
+  if(target<0||target>=roOrder.length)return;
+  [roOrder[pos],roOrder[target]]=[roOrder[target],roOrder[pos]];
+  buildReorderGrid();
+}
+
+async function saveReorder(){
+  const{srcs,names}=gSt[roId];
+  const newSrcs=roOrder.map(i=>srcs[i]);
+  const newNames=roOrder.map(i=>names[i]);
+  gSt[roId].srcs=newSrcs;
+  gSt[roId].names=newNames;
+  gSt[roId].idx=0;
+  document.getElementById('gsav'+roId).classList.add('show');
+  await saveProj(roId);
+  document.getElementById('gsav'+roId).classList.remove('show');
+  renderGallery(roId);
+  closeReorder();
+  showToast('✓ New image order saved successfully');
+}
+
+function closeReorder(){
+  document.getElementById('reorder-modal').classList.remove('open');
+  roId=null; roOrder=[]; dragSrc=null;
+}
+document.getElementById('reorder-modal').addEventListener('click',e=>{if(e.target===document.getElementById('reorder-modal'))closeReorder();});
+
+/* ═══════════════════════════ LIGHTBOX ═══════════════════════════ */
+let lbC={id:null,idx:0};
+function lbOpen(id,i){
+  lbC={id,idx:i};
+  const{srcs,names}=gSt[id];
+  document.getElementById('lb-img').src=srcs[i];
+  document.getElementById('lb-info').textContent=(names[i]||`Image ${i+1}`)+`  ·  ${i+1} / ${srcs.length}`;
+  document.getElementById('lb').classList.add('open');
+}
+function lbStep(d){
+  if(!lbC.id)return;
+  const{srcs,names}=gSt[lbC.id];
+  lbC.idx=(lbC.idx+d+srcs.length)%srcs.length;
+  const i=lbC.idx;
+  document.getElementById('lb-img').src=srcs[i];
+  document.getElementById('lb-info').textContent=(names[i]||`Image ${i+1}`)+`  ·  ${i+1} / ${srcs.length}`;
+}
+function lbClose(){document.getElementById('lb').classList.remove('open');}
+document.getElementById('lb').addEventListener('click',e=>{if(e.target===document.getElementById('lb'))lbClose();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){lbClose();closeReorder();}
+  if(e.key==='ArrowLeft')lbStep(-1);
+  if(e.key==='ArrowRight')lbStep(1);
+});
+
+/* ═══════════════════════════ PASSWORD ═══════════════════════════ */
+function openPw(){
+  const m=document.getElementById('pw-modal');
+  if(isAdmin){
+    document.getElementById('pw-title').textContent='Admin Active';
+    document.getElementById('pw-sub').textContent='You are logged in as admin';
+    document.getElementById('pw-inp').style.display='none';
+    document.getElementById('pw-btn').style.display='none';
+    document.getElementById('pw-logout').style.display='block';
+  }else{
+    document.getElementById('pw-title').textContent='Admin Access';
+    document.getElementById('pw-sub').textContent='Enter password to unlock uploads';
+    document.getElementById('pw-inp').style.display='block';
+    document.getElementById('pw-btn').style.display='block';
+    document.getElementById('pw-logout').style.display='none';
+    document.getElementById('pw-inp').value='';
+    document.getElementById('pw-err').style.display='none';
+    document.getElementById('pw-inp').classList.remove('err');
+  }
+  m.classList.add('open');
+  if(!isAdmin)setTimeout(()=>document.getElementById('pw-inp').focus(),80);
+}
+function closePw(){document.getElementById('pw-modal').classList.remove('open');}
+function checkPw(){
+  if(document.getElementById('pw-inp').value===PASS){
+    isAdmin=true;closePw();setAdminUI(true);
+  }else{
+    const inp=document.getElementById('pw-inp');
+    inp.classList.add('err');document.getElementById('pw-err').style.display='block';
+    inp.value='';setTimeout(()=>inp.classList.remove('err'),400);
+  }
+}
+function doLogout(){isAdmin=false;closePw();setAdminUI(false);}
+function setAdminUI(on){
+  const btn=document.getElementById('admin-btn');
+  btn.textContent=on?'🔓':'🔒';
+  btn.classList.toggle('on',on);
+  for(let i=1;i<=5;i++){
+    document.getElementById('gb'+i).classList.toggle('show',on);
+    const rb=document.getElementById('rbtn'+i);
+    if(rb&&on) rb.disabled=gSt[i].srcs.length<2;
+  }
+  document.getElementById('photo-upload-btn').style.display=on?'flex':'none';
+}
+document.getElementById('pw-modal').addEventListener('click',e=>{if(e.target===document.getElementById('pw-modal'))closePw();});
+document.getElementById('pw-inp').addEventListener('keydown',e=>{if(e.key==='Enter')checkPw();});
+
+/* ═══════════════════════════ TOAST ═══════════════════════════ */
+let toastT;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+/* ═══════════════════════════ SCROLL ═══════════════════════════ */
+const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+const secs=document.querySelectorAll('section[id]');
+const nls=document.querySelectorAll('.nav-links a');
+window.addEventListener('scroll',()=>{
+  let cur='';
+  secs.forEach(s=>{if(window.scrollY>=s.offsetTop-130)cur=s.id;});
+  nls.forEach(a=>{a.style.color=a.getAttribute('href')==='#'+cur?'var(--gold2)':'';});
+});
+
+initPage();
+</script>
+</body>
+</html>
